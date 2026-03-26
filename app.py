@@ -16,6 +16,10 @@ from generator.image_composer import generate_variations
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024  # 32MB上限
 
+# 必要なディレクトリを起動時に作成
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
 # 生成進捗の管理
 generation_status = {}
 
@@ -185,9 +189,6 @@ def serve_output(filename):
 
 
 if __name__ == "__main__":
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
-
     # ブラウザ自動起動
     threading.Timer(1.5, lambda: webbrowser.open("http://127.0.0.1:5000")).start()
 
