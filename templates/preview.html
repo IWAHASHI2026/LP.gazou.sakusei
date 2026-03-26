@@ -18,14 +18,16 @@
             </a>
             <div class="image-info">
                 <span class="filename">{{ file }}</span>
-                <span class="badge">保存済み</span>
+                <a href="{{ url_for('serve_output', filename=file) }}" download="{{ file }}" class="btn-download">ダウンロード</a>
             </div>
         </div>
         {% endfor %}
     </div>
-    <div class="output-path">
-        <p>保存先: <code>{{ output_folder }}</code></p>
+    {% if files | length > 1 %}
+    <div class="download-all-area">
+        <button id="download-all-btn" class="btn-primary" onclick="downloadAll()">すべてダウンロード</button>
     </div>
+    {% endif %}
     {% else %}
     <p class="no-results">画像が生成されませんでした。設定を変えて再度お試しください。</p>
     {% endif %}
@@ -34,6 +36,15 @@
         <a href="{{ url_for('index', session_id=session_id) }}" class="btn-primary">新しく生成する</a>
     </div>
 </section>
+
+<script>
+function downloadAll() {
+    const links = document.querySelectorAll('.btn-download');
+    links.forEach((link, i) => {
+        setTimeout(() => { link.click(); }, i * 500);
+    });
+}
+</script>
 
 <!-- 拡大表示モーダル -->
 <div id="modal" class="modal" style="display:none" onclick="this.style.display='none'">
