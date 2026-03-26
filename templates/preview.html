@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="preview-section">
+    <h2>生成結果</h2>
+
+    {% if error %}
+    <div class="error-message">
+        <p>エラーが発生しました: {{ error }}</p>
+    </div>
+    {% endif %}
+
+    {% if files %}
+    <div class="image-grid">
+        {% for file in files %}
+        <div class="image-card">
+            <a href="{{ url_for('serve_output', filename=file) }}" target="_blank">
+                <img src="{{ url_for('serve_output', filename=file) }}" alt="{{ file }}">
+            </a>
+            <div class="image-info">
+                <span class="filename">{{ file }}</span>
+                <span class="badge">保存済み</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="output-path">
+        <p>保存先: <code>{{ output_folder }}</code></p>
+    </div>
+    {% else %}
+    <p class="no-results">画像が生成されませんでした。設定を変えて再度お試しください。</p>
+    {% endif %}
+
+    <div class="preview-actions">
+        <a href="{{ url_for('index', session_id=session_id) }}" class="btn-primary">新しく生成する</a>
+    </div>
+</section>
+
+<!-- 拡大表示モーダル -->
+<div id="modal" class="modal" style="display:none" onclick="this.style.display='none'">
+    <img id="modal-img" src="" alt="拡大表示">
+</div>
+{% endblock %}

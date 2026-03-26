@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<form id="generate-form" enctype="multipart/form-data">
+    <input type="hidden" name="session_id" id="session-id" value="{{ session_id }}">
+
+    <!-- 画像アップロード -->
+    <section class="upload-section">
+        <div class="upload-zone" id="product-zone">
+            <input type="file" name="product_image" id="product-input" accept="image/png,image/jpeg,image/webp">
+            <div class="upload-placeholder" id="product-placeholder"
+                 {% if product_url %}style="display:none"{% endif %}>
+                <div class="upload-icon">&#128230;</div>
+                <p>商品画像</p>
+                <span>ドラッグ&ドロップ または クリック</span>
+            </div>
+            <img id="product-preview" class="upload-preview"
+                 {% if product_url %}src="{{ product_url }}" style="display:block"
+                 {% else %}style="display:none"{% endif %}
+                 alt="商品画像プレビュー">
+        </div>
+        <div class="upload-zone" id="background-zone">
+            <input type="file" name="background_image" id="background-input" accept="image/png,image/jpeg,image/webp">
+            <div class="upload-placeholder" id="background-placeholder"
+                 {% if background_url %}style="display:none"{% endif %}>
+                <div class="upload-icon">&#127748;</div>
+                <p>背景画像</p>
+                <span>ドラッグ&ドロップ または クリック</span>
+            </div>
+            <img id="background-preview" class="upload-preview"
+                 {% if background_url %}src="{{ background_url }}" style="display:block"
+                 {% else %}style="display:none"{% endif %}
+                 alt="背景画像プレビュー">
+        </div>
+    </section>
+
+    <!-- 設定 -->
+    <section class="settings-section">
+        <h2>設定</h2>
+        <div class="settings-grid">
+            <div class="setting-item">
+                <label for="aspect-ratio">アスペクト比</label>
+                <select name="aspect_ratio" id="aspect-ratio">
+                    {% for label, value in aspect_ratios.items() %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                    <option value="custom">カスタム</option>
+                </select>
+                <input type="text" name="custom_ratio" id="custom-ratio" placeholder="例: 5:3"
+                       style="display:none; margin-top:8px;">
+            </div>
+            <div class="setting-item">
+                <label for="text-space">テキストスペース</label>
+                <select name="text_space" id="text-space">
+                    <option value="none">不要</option>
+                    <option value="top-right">右上</option>
+                    <option value="right">右側</option>
+                    <option value="bottom-right">右下</option>
+                    <option value="top-left">左上</option>
+                    <option value="left">左側</option>
+                    <option value="bottom-left">左下</option>
+                    <option value="top">上</option>
+                    <option value="bottom">下</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="count">生成パターン数: <span id="count-label">1</span></label>
+                <input type="range" name="count" id="count" min="1" max="{{ max_patterns }}" value="1">
+            </div>
+            <div class="setting-item full-width">
+                <label for="instructions">追加指示（任意）</label>
+                <textarea name="instructions" id="instructions" rows="3"
+                          placeholder="例: 商品を大きめに配置してください / 明るい雰囲気で"></textarea>
+            </div>
+        </div>
+    </section>
+
+    <!-- 生成ボタン -->
+    <section class="action-section">
+        <button type="submit" id="generate-btn" class="btn-primary">画像を生成</button>
+    </section>
+
+    <!-- バッチリスト（複数生成の進捗表示） -->
+    <section id="batch-list" class="batch-list-section" style="display:none">
+        <h2>生成状況</h2>
+        <div id="batch-items"></div>
+    </section>
+
+    <!-- エラー表示 -->
+    <div id="error-toast" class="error-toast" style="display:none"></div>
+</form>
+{% endblock %}
