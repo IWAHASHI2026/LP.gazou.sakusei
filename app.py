@@ -25,6 +25,12 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+@app.route("/api/health")
+def health():
+    """Vercel動作確認用エンドポイント"""
+    return jsonify({"status": "ok", "vercel": IS_VERCEL, "api_key_set": bool(GOOGLE_API_KEY)})
+
+
 @app.route("/")
 def index():
     session_id = request.args.get("session_id", "")
