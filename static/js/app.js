@@ -199,7 +199,7 @@ function showError(message) {
 
 // ===== プレビューページのモーダル =====
 function setupModal() {
-    const cards = document.querySelectorAll(".image-card a");
+    const cards = document.querySelectorAll(".image-card a:not(.btn-download)");
     const modal = document.getElementById("modal");
     const modalImg = document.getElementById("modal-img");
 
