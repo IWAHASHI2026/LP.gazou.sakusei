@@ -6,8 +6,14 @@ load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 MODEL_ID = "gemini-3.1-flash-image-preview"
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static", "uploads")
-OUTPUT_FOLDER = os.path.join(os.path.dirname(__file__), "output")
+IS_VERCEL = os.getenv("VERCEL", "") == "1"
+
+if IS_VERCEL:
+    UPLOAD_FOLDER = "/tmp/uploads"
+    OUTPUT_FOLDER = "/tmp/output"
+else:
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static", "uploads")
+    OUTPUT_FOLDER = os.path.join(os.path.dirname(__file__), "output")
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 

@@ -1,5 +1,6 @@
 """LP用画像生成Webアプリ - Flask メインアプリケーション"""
 
+import base64
 import os
 import threading
 import webbrowser
@@ -9,7 +10,7 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 
 from config import (
     GOOGLE_API_KEY, UPLOAD_FOLDER, OUTPUT_FOLDER,
-    ALLOWED_EXTENSIONS, ASPECT_RATIOS, MAX_PATTERNS,
+    ALLOWED_EXTENSIONS, ASPECT_RATIOS, MAX_PATTERNS, IS_VERCEL,
 )
 from generator.image_composer import generate_variations
 
@@ -105,18 +106,37 @@ def generate():
     user_instructions = request.form.get("instructions", "").strip()
     text_space = request.form.get("text_space", "none")
 
-    # バッチID生成（ミリ秒まで含めて衝突回避）
-    batch_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:20]
-    generation_status[batch_id] = {"completed": 0, "total": count, "done": False, "error": None}
+    if IS_VERCEL:
+        # Vercel: 同期生成 → Base64で返却
+        count = min(count, 1)
+        try:
+            results = generate_variations(
+                api_key=GOOGLE_API_KEY,
+                product_bytes=product_bytes,
+                background_bytes=background_bytes,
+                aspect_ratio=aspect_ratio,
+                count=count,
+                user_instructions=user_instructions,
+                text_space=text_space,
+            )
+            images_b64 = []
+            for img_data in results:
+                images_b64.append("data:image/jpeg;base64," + base64.b64encode(img_data).decode())
+            return jsonify({"session_id": session_id, "images": images_b64})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    else:
+        # ローカル: バックグラウンドスレッドで生成
+        batch_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:20]
+        generation_status[batch_id] = {"completed": 0, "total": count, "done": False, "error": None}
 
-    # バックグラウンドで生成実行
-    thread = threading.Thread(
-        target=_run_generation,
-        args=(batch_id, product_bytes, background_bytes, aspect_ratio, count, user_instructions, text_space),
-    )
-    thread.start()
+        thread = threading.Thread(
+            target=_run_generation,
+            args=(batch_id, product_bytes, background_bytes, aspect_ratio, count, user_instructions, text_space),
+        )
+        thread.start()
 
-    return jsonify({"batch_id": batch_id, "session_id": session_id})
+        return jsonify({"batch_id": batch_id, "session_id": session_id})
 
 
 def _run_generation(batch_id, product_bytes, background_bytes, aspect_ratio, count, user_instructions, text_space):
