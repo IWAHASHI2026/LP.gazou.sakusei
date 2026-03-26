@@ -18,7 +18,7 @@
             </a>
             <div class="image-info">
                 <span class="filename">{{ file }}</span>
-                <a href="{{ url_for('serve_output', filename=file) }}" download="{{ file }}" class="btn-download">ダウンロード</a>
+                <a href="{{ url_for('download_output', filename=file) }}" class="btn-download">ダウンロード</a>
             </div>
         </div>
         {% endfor %}
@@ -41,7 +41,14 @@
 function downloadAll() {
     const links = document.querySelectorAll('.btn-download');
     links.forEach((link, i) => {
-        setTimeout(() => { link.click(); }, i * 500);
+        setTimeout(() => {
+            const a = document.createElement('a');
+            a.href = link.href;
+            a.download = '';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }, i * 500);
     });
 }
 </script>
