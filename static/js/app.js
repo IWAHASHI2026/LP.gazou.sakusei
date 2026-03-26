@@ -122,15 +122,10 @@ function setupForm() {
                 document.getElementById("session-id").value = data.session_id;
             }
 
-            if (data.images) {
-                // Vercel同期モード: インライン表示
-                displayInlineResults(data.images);
-            } else if (data.batch_id) {
-                // ローカル非同期モード: ポーリング
-                batchCounter++;
-                addBatchItem(data.batch_id, data.session_id, batchCounter);
-                pollBatch(data.batch_id, batchCounter);
-            }
+            // バッチをリストに追加してポーリング開始
+            batchCounter++;
+            addBatchItem(data.batch_id, data.session_id, batchCounter);
+            pollBatch(data.batch_id, batchCounter);
 
             btn.disabled = false;
             btn.textContent = "画像を生成";
@@ -192,34 +187,6 @@ async function pollBatch(batchId, num) {
             // ネットワークエラーは無視して再試行
         }
     }, 1500);
-}
-
-function displayInlineResults(images) {
-    const listSection = document.getElementById("batch-list");
-    const container = document.getElementById("batch-items");
-    listSection.style.display = "block";
-
-    batchCounter++;
-    const item = document.createElement("div");
-    item.className = "batch-item";
-    item.style.flexDirection = "column";
-    item.style.alignItems = "stretch";
-    item.innerHTML = `
-        <div class="batch-info">
-            <span class="batch-label">バッチ ${batchCounter}</span>
-            <span class="batch-complete">完了</span>
-        </div>
-        <div class="inline-results" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:12px; margin-top:12px;">
-            ${images.map((src, i) => `
-                <div class="image-card">
-                    <a href="${src}" download="generated_${i+1}.jpg">
-                        <img src="${src}" alt="生成画像 ${i+1}" style="width:100%; border-radius:8px;">
-                    </a>
-                </div>
-            `).join("")}
-        </div>
-    `;
-    container.prepend(item);
 }
 
 function showError(message) {

@@ -1,6 +1,5 @@
 """LP用画像生成Webアプリ - Flask メインアプリケーション"""
 
-import base64
 import os
 import threading
 import webbrowser
@@ -10,12 +9,12 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 
 from config import (
     GOOGLE_API_KEY, UPLOAD_FOLDER, OUTPUT_FOLDER,
-    ALLOWED_EXTENSIONS, ASPECT_RATIOS, MAX_PATTERNS, IS_VERCEL,
+    ALLOWED_EXTENSIONS, ASPECT_RATIOS, MAX_PATTERNS,
 )
 from generator.image_composer import generate_variations
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 4 * 1024 * 1024 if IS_VERCEL else 32 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024  # 32MB上限
 
 # 生成進捗の管理
 generation_status = {}
@@ -27,8 +26,8 @@ def allowed_file(filename):
 
 @app.route("/health")
 def health():
-    """Vercel動作確認用エンドポイント"""
-    return jsonify({"status": "ok", "vercel": IS_VERCEL, "api_key_set": bool(GOOGLE_API_KEY)})
+    """動作確認用エンドポイント"""
+    return jsonify({"status": "ok", "api_key_set": bool(GOOGLE_API_KEY)})
 
 
 @app.route("/")
@@ -112,37 +111,18 @@ def generate():
     user_instructions = request.form.get("instructions", "").strip()
     text_space = request.form.get("text_space", "none")
 
-    if IS_VERCEL:
-        # Vercel: 同期生成 → Base64で返却
-        count = min(count, 1)
-        try:
-            results = generate_variations(
-                api_key=GOOGLE_API_KEY,
-                product_bytes=product_bytes,
-                background_bytes=background_bytes,
-                aspect_ratio=aspect_ratio,
-                count=count,
-                user_instructions=user_instructions,
-                text_space=text_space,
-            )
-            images_b64 = []
-            for img_data in results:
-                images_b64.append("data:image/jpeg;base64," + base64.b64encode(img_data).decode())
-            return jsonify({"session_id": session_id, "images": images_b64})
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    else:
-        # ローカル: バックグラウンドスレッドで生成
-        batch_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:20]
-        generation_status[batch_id] = {"completed": 0, "total": count, "done": False, "error": None}
+    # バッチID生成（ミリ秒まで含めて衝突回避）
+    batch_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:20]
+    generation_status[batch_id] = {"completed": 0, "total": count, "done": False, "error": None}
 
-        thread = threading.Thread(
-            target=_run_generation,
-            args=(batch_id, product_bytes, background_bytes, aspect_ratio, count, user_instructions, text_space),
-        )
-        thread.start()
+    # バックグラウンドで生成実行
+    thread = threading.Thread(
+        target=_run_generation,
+        args=(batch_id, product_bytes, background_bytes, aspect_ratio, count, user_instructions, text_space),
+    )
+    thread.start()
 
-        return jsonify({"batch_id": batch_id, "session_id": session_id})
+    return jsonify({"batch_id": batch_id, "session_id": session_id})
 
 
 def _run_generation(batch_id, product_bytes, background_bytes, aspect_ratio, count, user_instructions, text_space):
