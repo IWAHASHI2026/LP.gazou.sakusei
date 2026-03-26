@@ -97,6 +97,17 @@ function setupForm() {
 
         try {
             const res = await fetch("/generate", { method: "POST", body: formData });
+
+            // レスポンスがJSONでない場合のハンドリング
+            const contentType = res.headers.get("content-type") || "";
+            if (!contentType.includes("application/json")) {
+                const text = await res.text();
+                showError("サーバーエラー: " + (text.substring(0, 200) || `HTTP ${res.status}`));
+                btn.disabled = false;
+                btn.textContent = "画像を生成";
+                return;
+            }
+
             const data = await res.json();
 
             if (!res.ok) {

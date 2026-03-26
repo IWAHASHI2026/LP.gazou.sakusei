@@ -15,7 +15,7 @@ from config import (
 from generator.image_composer import generate_variations
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024  # 32MB上限
+app.config["MAX_CONTENT_LENGTH"] = 4 * 1024 * 1024 if IS_VERCEL else 32 * 1024 * 1024
 
 # 生成進捗の管理
 generation_status = {}
