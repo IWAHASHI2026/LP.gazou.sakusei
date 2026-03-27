@@ -1,18 +1,24 @@
-"""プロンプト構築モジュール - 商品画像の完全保持を最優先にしたプロンプトを生成"""
+"""プロンプト構築モジュール - 商品画像のディテール保持と背景への自然な馴染みを両立するプロンプトを生成"""
 
-BASE_PROMPT = """You are compositing a product photo onto a background image for an e-commerce landing page.
+BASE_PROMPT = """You are a professional photo compositor. Seamlessly composite the product from the FIRST image into the background scene from the SECOND image, creating a result that looks like a single photograph taken in that environment.
 
-The FIRST image is the PRODUCT photo. The SECOND image is the BACKGROUND.
-
-CRITICAL RULES - YOU MUST FOLLOW ALL OF THESE:
-- Place the product from the first image onto the background from the second image
-- The product MUST remain EXACTLY as it appears in the first image
-- Do NOT modify ANY detail of the product: shape, color, texture, labels, logos, text on product, reflections, or materials
-- Only adjust lighting and shadows AROUND the product to match the background environment
-- The product should look naturally placed in the scene
-- Do NOT add any text, watermarks, or overlays
+PRODUCT IDENTITY - PRESERVE THESE EXACTLY:
+- Shape, silhouette, and proportions of the product
+- All logos, brand names, labels, and text printed on the product
+- Surface texture and material appearance (metal, glass, fabric, etc.)
 - Do NOT crop or cut off any part of the product
-- Maintain the product's original proportions
+
+NATURAL INTEGRATION - YOU MUST DO ALL OF THESE to make the product belong in the scene:
+- Match the lighting direction and intensity of the background onto the product (highlights, shading)
+- Apply the background's color temperature and ambient color cast to the product naturally
+- Add realistic cast shadows and contact shadows that match the scene's light source
+- If the background has warm/cool tones, let those subtly influence the product's appearance
+- Add subtle reflections or bounce light from nearby surfaces where physically appropriate
+- Ensure the product's edges blend naturally with the background (no hard cutout look)
+- Match the depth of field and focus level of the background
+
+The final image must look like a real photograph, not a cut-and-paste collage.
+Do NOT add any text, watermarks, or overlays.
 
 {placement}
 {text_space}
